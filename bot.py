@@ -30,11 +30,11 @@ def get_default_config():
     return {
         'attack': {
             'default_duration': 60,
-            'default_packet_size': 1024,
-            'max_concurrent_attacks': 5
+            'default_packet_size': 10240,
+            'max_concurrent_attacks': 500
         },
         'network': {
-            'default_port': 8080,
+            'default_port': 20000,
             'allowed_ip_ranges': ['0.0.0.0/0']
         },
         'logging': {
@@ -49,7 +49,7 @@ def start_attack(ip=None, port=None, duration=None):
 
     # Use provided parameters or fall back to defaults
     target_ip = ip if ip else config.get('network', {}).get('default_ip', '127.0.0.1')
-    target_port = port if port else config.get('network', {}).get('default_port', 8080)
+    target_port = port if port else config.get('network', {}).get('default_port', 20000)
     attack_duration = duration if duration else config.get('attack', {}).get('default_duration', 60)
 
     # Log attack initiation
