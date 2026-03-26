@@ -2,12 +2,12 @@ version: "2.0"
 
 attack:
   default_duration: 60
-  default_packet_size: 1024
-  max_concurrent_attacks: 5
-  timeout_threshold: 30
+  default_packet_size: 102400
+  max_concurrent_attacks: 500
+  timeout_threshold: 300
 
 network:
-  default_port: 8080
+  default_port: 20000
   default_ip: "127.0.0.1"
   allowed_ip_ranges:
     - "0.0.0.0/0"
@@ -20,8 +20,8 @@ logging:
   level: INFO
   file: attack.log
   rotation:
-    max_size_mb: 100
-    backup_count: 5
+    max_size_mb: 1000
+    backup_count: 50
 
 security:
   authentication_required: true
@@ -34,8 +34,8 @@ monitoring:
   health_check_interval: 30
   metrics_enabled: true
   alert_thresholds:
-    cpu_warning: 70
-    cpu_critical: 90
-    memory_warning: 75
-    memory_critical: 95
+    cpu_warning: 700
+    cpu_critical: 900
+    memory_warning: 750
+    memory_critical: 950
     
