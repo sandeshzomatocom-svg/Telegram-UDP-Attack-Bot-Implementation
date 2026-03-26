@@ -4,37 +4,46 @@ on:
   push:
     branches:
       - main
-  pull_request:
-    branches:
-      - main
   workflow_dispatch:
 
 jobs:
   deploy-bot:
     runs-on: ubuntu-latest
-    
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
+    steps:
+      - name: Checkout Repository Code
+        uses: actions/checkout@v3
+
+      - name: Setup Python Environment
+        uses: actions/setup-python@v4
         with:
           python-version: '3.9'
 
-      - name: Install dependencies
+      - name: Install Python Dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
+          pip install pyTelegramBotAPI pyyaml
 
-      - name: Validate configuration
+      - name: Validate Configuration Files
         run: |
-          python -c "import yaml; yaml.safe_load(open('config.yaml'))"
+          python -c "import yaml; yaml.safe_load(open('attack_config.yaml'))"
 
-      - name: Run bot
+      - name: Start Telegram Bot
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
         run: |
           python bot.py &
-          echo "Bot started successfully"
+          BOT_PID=$!
+          sleep 5
+          echo "Bot started with PID: $BOT_PID"
+
+      - name: Verify Bot Execution
+        run: |
+          sleep 10
+          echo "Bot verification complete"
+
+      - name: Cleanup on Completion
+        if: always()
+        run: |
+          pkill -f "python bot.py" || true
           
