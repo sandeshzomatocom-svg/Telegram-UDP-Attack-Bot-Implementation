@@ -217,7 +217,7 @@ class UDPAttackBot:
 def main():
     import os
 
-    token = os.getenv('TELEGRAM_BOT_TOKEN')
+    token = os.getenv("8625781811:AAGymdn1JBdoOj2aba1kpmz9vebH9k3Q0Ko")
     if not token:
         logger.error("TELEGRAM_BOT_TOKEN environment variable is not set")
         return
