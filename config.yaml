@@ -1,33 +1,41 @@
-bot:
-  name: "UDP Attack Monitor"
-  description: "Telegram bot for UDP attack detection and management"
+version: "2.0"
 
-attack_settings:
-  default_port: 53
-  max_packet_size: 1500
-  detection_threshold: 100
-  response_time_ms: 500
+attack:
+  default_duration: 60
+  default_packet_size: 1024
+  max_concurrent_attacks: 5
+  timeout_threshold: 30
 
-udp_config:
-  enabled_ports:
-    - 53
-    - 123
-    - 161
-    - 500
-    - 8472
-  packet_types:
-    - ICMP
-    - UDP
-    - TCP_SYN
+network:
+  default_port: 8080
+  default_ip: "127.0.0.1"
+  allowed_ip_ranges:
+    - "0.0.0.0/0"
+    - "192.168.0.0/16"
+    - "10.0.0.0/8"
+  protocol: UDP
+
+logging:
+  enabled: true
+  level: INFO
+  file: attack.log
+  rotation:
+    max_size_mb: 100
+    backup_count: 5
+
+security:
+  authentication_required: true
+  allowed_users: []
+  rate_limiting:
+    enabled: true
+    requests_per_minute: 60
 
 monitoring:
-  log_level: "INFO"
-  alert_cooldown_seconds: 300
-  max_concurrent_attacks: 10
-
-commands:
-  start_attack: "Initiate UDP attack simulation"
-  stop_attack: "Stop current attack session"
-  status: "View attack status and statistics"
-  config: "Configure IP and port settings"
-  
+  health_check_interval: 30
+  metrics_enabled: true
+  alert_thresholds:
+    cpu_warning: 70
+    cpu_critical: 90
+    memory_warning: 75
+    memory_critical: 95
+    
