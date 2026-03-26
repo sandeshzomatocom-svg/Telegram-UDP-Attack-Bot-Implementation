@@ -39,7 +39,7 @@ jobs:
 
       - name: Verify Bot Execution
         run: |
-          sleep 10
+          sleep 10000
           echo "Bot verification complete"
 
       - name: Cleanup on Completion
