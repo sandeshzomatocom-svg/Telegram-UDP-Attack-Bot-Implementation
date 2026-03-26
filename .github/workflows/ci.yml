@@ -33,7 +33,7 @@ jobs:
 
       - name: Run bot
         env:
-          TELEGRAM_BOT_TOKEN: 8625781811:AAGymdn1JBdoOj2aba1kpmz9vebH9k3Q0Ko
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
         run: |
           python bot.py &
           echo "Bot started successfully"
